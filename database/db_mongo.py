@@ -1,0 +1,1 @@
+# Aquí va la lógica connectora a la BD mongodb
