@@ -9,6 +9,22 @@ function App() {
 
   return (
     <>
+     <main className="flex min-h-screen items-center justify-center bg-base-200">
+      <div className="card w-96 bg-base-100 shadow-xl">
+        <div className="card-body">
+          <h2 className="card-title">
+            ¡daisyUI funciona!
+          </h2>
+
+          <p>Mi tienda virtual con React y Vite.</p>
+
+          <button className="btn btn-primary">
+            Comenzar
+          </button>
+        </div>
+      </div>
+    </main>
+    
       <section id="center">
         <div className="hero">
           <img src={heroImg} className="base" width="170" height="179" alt="" />
