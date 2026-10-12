@@ -1,4 +1,19 @@
- defaults:
+name: Frontend CI
+
+'on':
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build React App
+    runs-on: ubuntu-latest
+
+    defaults:
       run:
         working-directory: frontend
 
