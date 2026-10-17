@@ -13,7 +13,7 @@ function App() {
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title">
-            ¡daisyUI funciona!
+            ¡daisyUI funciona! Probando con docker
           </h2>
 
           <p>Mi tienda virtual con React y Vite.</p>
