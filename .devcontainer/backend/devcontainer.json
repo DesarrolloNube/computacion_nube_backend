@@ -2,7 +2,7 @@
   "name": "Backend (FastAPI)",
   "dockerComposeFile": ["../../docker-compose.yml"],
   "service": "backend",
-  "runServices": ["backend", "db"],
+  "runServices": ["backend", "db", "frontend"],
   "workspaceFolder": "/app",
   "shutdownAction": "none",
   "customizations": {
