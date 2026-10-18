@@ -1,0 +1,16 @@
+{
+  "name": "Frontend (React + Vite)",
+  "dockerComposeFile": ["../../docker-compose.yml"],
+  "service": "frontend",
+  "runServices": ["frontend", "backend", "db"],
+  "workspaceFolder": "/app",
+  "shutdownAction": "none",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  }
+}
