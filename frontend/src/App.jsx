@@ -3,12 +3,17 @@ import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
+import Navbar from "./assets/components/navbar.jsx";
+import Footer from "./assets/components/footer.jsx";
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
+    
     <>
+          <Navbar />
+
      <main className="flex min-h-screen items-center justify-center bg-base-200">
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
@@ -131,6 +136,8 @@ function App() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
+
+      <Footer />
     </>
   )
 }
