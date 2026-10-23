@@ -1,79 +1,153 @@
+
+import {
+  Phone,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Camera,
+
+} from "lucide-react";
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialNetworks = [
-    { name: "Facebook", href: "https://www.facebook.com/" },
-    { name: "Instagram", href: "https://www.instagram.com/" },
-    { name: "WhatsApp", href: "https://www.whatsapp.com/" },
+    {
+      name: "Facebook",
+      href: "https://www.facebook.com/",
+      symbol: "f",
+    },
+{
+  name: "Instagram",
+  href: "https://www.instagram.com/",
+  Icon: Camera,
+},
+    {
+      name: "WhatsApp",
+      href: "https://www.whatsapp.com/",
+      Icon: MessageCircle,
+    },
   ];
 
+  const mapUrl =
+    "https://www.google.com/maps?q=9.658199,-84.023727";
+
+  const embedUrl =
+    "https://maps.google.com/maps?q=9.658199,-84.023727&z=16&output=embed";
+
   return (
-    <footer className="footer footer-vertical bg-neutral p-8 text-neutral-content md:p-10">
-      <div className="mx-auto w-full max-w-7xl">
+    <footer className="bg-black px-6 py-10 text-white md:px-10">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        <section>
+          <h2 className="mb-5 text-xl font-bold text-[#efb60e]">
+            Contáctanos
+          </h2>
 
-        {/* Información de contacto */}
-        <section className="text-center md:text-left">
-          <h2 className="mb-4 text-xl font-bold">Contáctanos</h2>
+          <ul className="flex flex-col gap-4 text-sm">
+            <li className="flex items-start gap-3">
+              <Phone
+                size={20}
+                className="shrink-0 text-[#efb60e]"
+              />
+              <div>
+                <p className="font-semibold">Teléfono</p>
+                <p className="text-white/80">0000-0000</p>
+              </div>
+            </li>
 
-          <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
-            <div>
-              <p className="font-semibold">Teléfono</p>
-              <p className="opacity-80">Por definir</p>
-            </div>
+            <li className="flex items-start gap-3">
+              <Mail
+                size={20}
+                className="shrink-0 text-[#efb60e]"
+              />
+              <div>
+                <p className="font-semibold">Correo electrónico</p>
+                <p className="text-white/80">superEFerre@gmail.com</p>
+              </div>
+            </li>
 
-            <div>
-              <p className="font-semibold">Correo electrónico</p>
-              <p className="opacity-80">Por definir</p>
-            </div>
-
-            <div>
-              <p className="font-semibold">Dirección</p>
-              <p className="opacity-80">Costa Rica</p>
-            </div>
-          </div>
+            <li className="flex items-start gap-3">
+              <MapPin
+                size={20}
+                className="shrink-0 text-[#efb60e]"
+              />
+              <div>
+                <p className="font-semibold">Dirección</p>
+                <a
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/80 transition-colors hover:text-[#efb60e]"
+                >
+                  100mts oeste del hotel La Arboleda, lado derecho, San Marcos de Tarrazú, Costa Rica
+                </a>
+              </div>
+            </li>
+          </ul>
         </section>
 
-        <div className="divider before:bg-neutral-content/20 after:bg-neutral-content/20" />
+        <section>
+          <h2 className="mb-5 text-xl font-bold text-[#efb60e]">
+            Síguenos
+          </h2>
 
-        {/* Redes sociales */}
-        <section className="w-full text-center">
-          <h2 className="mb-4 text-lg font-bold">Síguenos en redes sociales</h2>
-
-          <div className="flex flex-wrap justify-center gap-4">
-            {socialNetworks.map((social) => (
+          <div className="flex flex-col gap-4">
+            {socialNetworks.map(({ name, href, Icon, symbol }) => (
               <a
-                key={social.name}
-                href={social.href}
+                key={name}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-ghost btn-sm"
-                aria-label={social.name}
+                aria-label={name}
+                className="flex w-fit items-center gap-3 text-sm text-white transition-colors hover:text-[#efb60e]"
               >
-                {social.name}
+                {Icon ? (
+                  <Icon size={21} />
+                ) : (
+                  <span className="flex h-[21px] w-[21px] items-center justify-center text-lg font-bold">
+                    {symbol}
+                  </span>
+                )}
+                <span>{name}</span>
               </a>
             ))}
           </div>
         </section>
 
-        <div className="divider before:bg-neutral-content/20 after:bg-neutral-content/20" />
+        <section>
+          <h2 className="mb-5 text-xl font-bold text-[#efb60e]">
+            Nuestra ubicación
+          </h2>
 
-        {/* Enlaces legales y copyright */}
-        <section className="flex w-full flex-col items-center justify-between gap-4 text-center text-sm md:flex-row">
-          <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2">
-            <a href="/politicas-privacidad" className="link link-hover">
-              Política de privacidad
-            </a>
+          <div className="overflow-hidden rounded-lg border border-white/20">
+            <iframe
+              title="Ubicación de SE-Ferre en Google Maps"
+              src={embedUrl}
+              width="100%"
+              height="200"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
 
-            <a href="/terminos-condiciones" className="link link-hover">
-              Términos y condiciones
-            </a>
-          </nav>
-
-          <p className="opacity-70">
-            © {currentYear} SE-Ferre. Todos los derechos reservados.
-          </p>
+          <a
+            href={mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-2 text-sm text-white/80 transition-colors hover:text-[#efb60e]"
+          >
+            <MapPin size={16} />
+            Cómo llegar
+          </a>
         </section>
+      </div>
 
+      <div className="mx-auto mt-10 max-w-7xl border-t border-white/20 pt-6 text-center text-sm text-white/70">
+        <p>
+          © {currentYear} SE-Ferre. Todos los derechos reservados.
+        </p>
       </div>
     </footer>
   );

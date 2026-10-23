@@ -1,12 +1,20 @@
 import { useState } from "react";
+import { ShoppingCart, Menu, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const categories = [
   { name: "Herramientas", href: "/productos?categoria=herramientas" },
   { name: "Construcción", href: "/productos?categoria=construccion" },
   { name: "Pinturas", href: "/productos?categoria=pinturas" },
   { name: "Electricidad", href: "/productos?categoria=electricidad" },
-  { name: "Insumos agrícolas", href: "/productos?categoria=insumos-agricolas" },
-  { name: "Artículos del hogar", href: "/productos?categoria=articulos-del-hogar" },
+  {
+    name: "Insumos agrícolas",
+    href: "/productos?categoria=insumos_agricolas",
+  },
+  {
+    name: "Artículos del hogar",
+    href: "/productos?categoria=articulos_del_hogar",
+  },
 ];
 
 export default function Navbar() {
@@ -22,24 +30,16 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-base-100 shadow-md">
+    <header className="sticky top-0 z-50 bg-black text-white shadow-md">
       <div className="navbar mx-auto max-w-7xl gap-2 px-3 sm:px-6">
-
         <div className="navbar-start flex-1">
-          <a href="/" className="flex items-center gap-2">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-error text-lg font-black text-white">
-              SE
-            </span>
-
-            <span className="leading-tight">
-              <span className="block text-lg font-black sm:text-xl">
-                SE-Ferre
-              </span>
-              <span className="hidden text-xs text-base-content/60 sm:block">
-                Super E-Ferretería
-              </span>
-            </span>
-          </a>
+          <Link to="/" aria-label="Inicio Super Ferre">
+            <img
+              src="/logo.png"
+              alt="Logo de Super Ferre"
+              className="h-12 w-auto object-contain sm:h-14"
+            />
+          </Link>
         </div>
 
         <div className="navbar-center hidden flex-1 md:flex">
@@ -54,102 +54,71 @@ export default function Navbar() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar herramientas, materiales..."
               aria-label="Buscar productos"
-              className="input input-bordered join-item w-full"
+              className="input join-item w-full border-gray-300 bg-white text-gray-800 placeholder:text-gray-500 focus:outline-none"
             />
 
             <button
               type="submit"
-              className="btn btn-error join-item text-white"
+              className="btn join-item border-[#efb60e] bg-[#efb60e] text-black hover:border-[#d9a40b] hover:bg-[#d9a40b]"
             >
+              <Search size={18} />
               Buscar
             </button>
           </form>
         </div>
 
         <div className="navbar-end flex-1 gap-1">
-          <a
-            href="/carrito"
-            className="btn btn-ghost btn-square"
+          <Link
+            to="/carrito"
+            className="btn btn-ghost btn-square text-white hover:bg-white/10"
             aria-label="Carrito de compras"
             title="Carrito"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="9" cy="21" r="1" />
-              <circle cx="20" cy="21" r="1" />
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-            </svg>
-          </a>
+            <ShoppingCart size={24} strokeWidth={1.8} />
+          </Link>
 
           <div className="dropdown dropdown-end">
             <button
               type="button"
-              className="btn btn-error gap-2 text-white"
+              className="btn gap-2 border-[#efb60e] bg-[#efb60e] text-black hover:border-[#d9a40b] hover:bg-[#d9a40b]"
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((open) => !open)}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                aria-hidden="true"
-              >
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-
+              <Menu size={20} strokeWidth={2} />
               <span className="hidden sm:inline">Categorías</span>
             </button>
 
             {menuOpen && (
-              <ul className="menu dropdown-content z-50 mt-3 w-64 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl">
-                <li className="menu-title">
-                  <span>Explorar categorías</span>
-                </li>
-
+              <ul className="menu dropdown-content z-50 mt-3 w-64 rounded-box border border-gray-200 bg-white p-2 text-gray-800 shadow-xl">
                 {categories.map((category) => (
                   <li key={category.name}>
-                    <a
-                      href={category.href}
+                    <Link
+                      to={category.href}
                       onClick={() => setMenuOpen(false)}
                     >
                       {category.name}
-                    </a>
+                    </Link>
                   </li>
                 ))}
 
-                <li className="my-1 border-t border-base-300" />
+                <li className="my-1 border-t border-gray-200" />
 
                 <li>
-                  <a
-                    href="/login"
+                  <Link
+                    to="/login"
                     onClick={() => setMenuOpen(false)}
                   >
                     Iniciar sesión
-                  </a>
+                  </Link>
                 </li>
 
                 <li>
-                  <a
-                    href="/registro"
+                  <Link
+                    to="/registro"
                     onClick={() => setMenuOpen(false)}
                   >
                     Crear usuario
-                  </a>
+                  </Link>
                 </li>
               </ul>
             )}
@@ -157,22 +126,28 @@ export default function Navbar() {
         </div>
       </div>
 
-      <div className="border-t border-base-300 px-3 py-3 md:hidden">
-        <form onSubmit={handleSearch} role="search" className="join flex w-full">
+      <div className="border-t border-white/10 px-3 py-3 md:hidden">
+        <form
+          onSubmit={handleSearch}
+          role="search"
+          className="join flex w-full"
+        >
           <input
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Buscar productos..."
             aria-label="Buscar productos"
-            className="input input-bordered join-item w-full"
+            className="input join-item w-full border-gray-300 bg-white text-gray-800 placeholder:text-gray-500 focus:outline-none"
           />
 
           <button
             type="submit"
-            className="btn btn-error join-item text-white"
+            className="btn join-item border-[#efb60e] bg-[#efb60e] text-black hover:border-[#d9a40b] hover:bg-[#d9a40b]"
+            aria-label="Buscar"
           >
-            Buscar
+            <Search size={18} />
+            <span>Buscar</span>
           </button>
         </form>
       </div>
