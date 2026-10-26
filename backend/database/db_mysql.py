@@ -1,4 +1,3 @@
-import pymysql.cursors
 from os import getenv
 
 from dotenv import load_dotenv
@@ -7,11 +6,11 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 
 load_dotenv()
 
-DB_HOST = getenv("MYSQL_HOST", "localhost")
+DB_HOST = getenv("MYSQL_HOST")
 DB_PORT = int(getenv("MYSQL_PORT", "3306"))
-DB_NAME = getenv("MYSQL_DATABASE", "db")
-DB_USER = getenv("MYSQL_USER", "user")
-DB_PASSWORD = getenv("MYSQL_PASSWORD", "passwd")
+DB_NAME = getenv("MYSQL_DATABASE")
+DB_USER = getenv("MYSQL_USER")
+DB_PASSWORD = getenv("MYSQL_PASSWORD")
 
 DATABASE_URL = URL.create(
     drivername="mysql+pymysql",

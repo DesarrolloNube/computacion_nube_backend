@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from os import getenv
-# from routers import item_routes_postgres
+from routers import usuarios_route
 
 load_dotenv()
 app = FastAPI()
@@ -24,3 +24,5 @@ app.add_middleware(
 def read_root():
     return {"message": "Server is running"}
 # app.include_router(item_routes_postgres.router, prefix="/api") # Se llama los CRUD via el router desde aquí
+
+app.include_router(usuarios_route.router, prefix="/api")
