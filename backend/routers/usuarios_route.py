@@ -8,6 +8,7 @@ from services.usuarios_servicios import (
     crear_usuario,
     iniciar_sesion_usuario as autenticar_usuario,
     crear_tokens_usuario,
+    cerrar_sesion
 )
 from config import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -44,11 +45,23 @@ def registrar_usuario(usuario: CreacionUsuario, db: Session = Depends(get_db)):
     return crear_usuario(db=db, usuario=usuario)
 
 @router.post("/login")
-def login(
-    credentials: LoginRequest,
-    response: Response,
-    db: Session = Depends(get_db),
-):
+def login( credentials: LoginRequest, response: Response, db: Session = Depends(get_db) ):
+    """
+    Inicio de sesión de usuario de usuario
+
+    **Valores necesarios:**
+
+    -- ```usuario```
+
+    -- ```contraseña```
+
+    Para mandarlo via postman, usar
+    ```
+    {
+        "usuario": "string",
+        "contrasena": "string"
+    }
+    """
     usuario_db = autenticar_usuario(
         db,
         usuario=credentials.usuario,
@@ -89,10 +102,17 @@ def login(
 
 @router.get("/quien_es")
 def quien_es(request: Request):
+    """
+    Verificación de cookie response
+
+    **Valores necesarios:**
+
+    - **Ninguno**
+    """
     access_token = request.cookies.get("access_token")
 
     if not access_token:
-        raise HTTPException(status_code=401, detail="No access token cookie found")
+        raise HTTPException(status_code=401, detail="No hay cookie token de acceso")
 
     try:
         payload = jwt.decode(
@@ -101,7 +121,7 @@ def quien_es(request: Request):
             algorithms=[ALGORITHM],
         )
     except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid or expired access token")
+        raise HTTPException(status_code=401, detail="Token inválido expirado")
 
     return {
         "user_id": payload.get("sub"),
@@ -109,3 +129,20 @@ def quien_es(request: Request):
         "email": payload.get("email"),
         "tipo_usuario": payload.get("tipo_usuario"),
     }
+
+@router.post("/logout")
+def logout(request: Request, response: Response, db: Session = Depends(get_db)):
+    """
+    Cierre de sesión de usuario
+
+    **Valores necesarios:**
+
+    - **Ninguno**
+    """
+    refresh_token = request.cookies.get("refresh_token")
+    cerrar_sesion(db, refresh_token)
+
+    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="refresh_token", path="/")
+
+    return { "message": "Sesión cerrada exitosamente"}

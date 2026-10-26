@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 load_dotenv()
 
 DB_HOST = getenv("MYSQL_HOST")
-DB_PORT = int(getenv("MYSQL_PORT", "3306"))
+DB_PORT = int(getenv("MYSQL_PORT"))
 DB_NAME = getenv("MYSQL_DATABASE")
 DB_USER = getenv("MYSQL_USER")
 DB_PASSWORD = getenv("MYSQL_PASSWORD")

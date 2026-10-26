@@ -58,6 +58,11 @@ def iniciar_sesion_usuario(
 
 #Crear tokens de seguridad para el usuario
 def crear_tokens_usuario(db: Session, usuario: Usuario):
+    #Elimina tokens preexistentes del usuario
+    db.query(RefrescarToken).filter(
+        RefrescarToken.user_id == usuario.id
+    ).delete(synchronize_session=False)
+
     access_token = crear_access_token({
         "sub": str(usuario.id),
         "username": usuario.usuario,
@@ -80,6 +85,11 @@ def crear_tokens_usuario(db: Session, usuario: Usuario):
 
     return access_token, refresh_token
 
-#Autentica al usuario
+def cerrar_sesion(db: Session, refresh_token: str | None):
+    if refresh_token:
+        db_token = db.query(RefrescarToken).filter(RefrescarToken.token == refresh_token).first()
+    if (db_token):
+        db.delete(db_token)
+        db.commit
 
-#Crea el token de accesso
+
