@@ -1,16 +1,57 @@
+
 import { useState } from "react";
+import api from "../services/api";
+
+import { useAuth } from "../context/useAuth";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { refreshUser } = useAuth();
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    console.log("Correo:", email);
-    console.log("Contraseña:", password);
+    if (loading) return;
+
+    setLoading(true);
+    setError("");
+
+try {
+  await api.post("/usuarios/login", {
+    usuario: username.trim(),
+    contrasena: password,
+  });
+
+  await refreshUser();
+  window.location.assign("/");
+} catch (error) {
+  const status = error.response?.status;
+
+  if (status === 401 || status === 403) {
+    setError("No se pudo iniciar sesión. Verifica tus datos.");
+  } else {
+    setError("Algo salió mal. Inténtalo de nuevo más tarde.");
   }
+} finally {
+  setLoading(false);
+}
+  }
+
+
+
+
+
+
+
+
+
+
+
+  
 
   return (
     <main className="flex min-h-[70vh] items-center justify-center bg-white px-4 py-12 text-black">
@@ -18,27 +59,26 @@ export default function Login() {
         <div className="card-body gap-5 p-6 sm:p-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-black">
-Inicio de Sesión
+              Inicio de Sesión
             </h1>
-
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="form-control">
-              <label htmlFor="email" className="label">
+              <label htmlFor="username" className="label">
                 <span className="label-text font-semibold text-black">
-                  Correo electrónico
+                  Nombre de usuario
                 </span>
               </label>
 
               <input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="ejemplo@correo.com"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                id="username"
+                type="text"
+                name="usuario"
+                placeholder="Tu nombre de usuario"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
                 className="input input-bordered w-full border-gray-300 bg-white text-black placeholder:text-gray-400 focus:border-[#efb60e] focus:outline-none"
                 required
               />
@@ -55,8 +95,8 @@ Inicio de Sesión
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="1234abcd"
+                  name="contrasena"
+                  placeholder="Tu contraseña"
                   autoComplete="current-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
@@ -79,6 +119,12 @@ Inicio de Sesión
               </div>
             </div>
 
+            {error && (
+              <p role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            )}
+
             <div className="flex justify-end">
               <a
                 href="/recuperar-contrasena"
@@ -90,14 +136,19 @@ Inicio de Sesión
 
             <button
               type="submit"
-              className="btn mt-2 w-full border-[#efb60e] bg-[#efb60e] text-black hover:border-[#d9a40b] hover:bg-[#d9a40b]"
+              disabled={loading}
+              className="btn mt-2 w-full border-[#efb60e] bg-[#efb60e] text-black hover:border-[#d9a40b] hover:bg-[#d9a40b] disabled:opacity-60"
             >
-              Iniciar sesión
+              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
             </button>
           </form>
 
           <p className="text-center text-sm text-black">
-            ¿Aun no tienes cuenta? <a href="/registro" className="font-bold text-black underline decoration-[#efb60e] decoration-2 underline-offset-4 hover:text-[#b88b00]">
+            ¿Aún no tienes cuenta?{" "}
+            <a
+              href="/registro"
+              className="font-bold text-black underline decoration-[#efb60e] decoration-2 underline-offset-4 hover:text-[#b88b00]"
+            >
               Crear usuario
             </a>
           </p>

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ShoppingCart, Menu, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ShoppingCart, Menu, Search, UserRound } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 
 const categories = [
   { name: "Herramientas", href: "/productos?categoria=herramientas" },
@@ -19,14 +20,28 @@ const categories = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  const { user, isAuthenticated, loadingAuth, logout } = useAuth();
+  const navigate = useNavigate();
 
   function handleSearch(event) {
     event.preventDefault();
 
     if (!search.trim()) return;
 
-    console.log("Buscar producto:", search.trim());
+    navigate(`/productos?busqueda=${encodeURIComponent(search.trim())}`);
+  }
+
+  async function handleLogout() {
+    try {
+      await logout();
+      setAccountOpen(false);
+      navigate("/", { replace: true });
+    } catch {
+      alert("No se pudo cerrar la sesión. Inténtalo de nuevo.");
+    }
   }
 
   return (
@@ -100,26 +115,69 @@ export default function Navbar() {
                     </Link>
                   </li>
                 ))}
+              </ul>
+            )}
+          </div>
 
-                <li className="my-1 border-t border-gray-200" />
+          <div className="dropdown dropdown-end">
+            <button
+              type="button"
+              className="btn btn-ghost gap-2 text-white hover:bg-white/10"
+              aria-expanded={accountOpen}
+              onClick={() => setAccountOpen((open) => !open)}
+            >
+              <UserRound size={21} />
+              <span className="hidden sm:inline">
+                {loadingAuth
+                  ? "Mi cuenta"
+                  : isAuthenticated
+                    ? user?.username || "Mi cuenta"
+                    : "Mi cuenta"}
+              </span>
+            </button>
 
-                <li>
-                  <Link
-                    to="/login"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Iniciar sesión
-                  </Link>
-                </li>
-
-                <li>
-                  <Link
-                    to="/registro"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Crear usuario
-                  </Link>
-                </li>
+            {accountOpen && (
+              <ul className="menu dropdown-content z-50 mt-3 w-56 rounded-box border border-gray-200 bg-white p-2 text-gray-800 shadow-xl">
+                {loadingAuth ? (
+                  <li>
+                    <span>Comprobando sesión...</span>
+                  </li>
+                ) : isAuthenticated ? (
+                  <>
+                    <li>
+                      <Link
+                        to="/perfil"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        Mi perfil
+                      </Link>
+                    </li>
+                    <li>
+                      <button type="button" onClick={handleLogout}>
+                        Cerrar sesión
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li>
+                      <Link
+                        to="/login"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        Iniciar sesión
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/registro"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        Crear usuario
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             )}
           </div>
