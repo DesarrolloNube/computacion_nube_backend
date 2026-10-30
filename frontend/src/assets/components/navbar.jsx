@@ -50,7 +50,7 @@ export default function Navbar() {
         <div className="navbar-start flex-1">
           <Link to="/" aria-label="Inicio Super Ferre">
             <img
-              src="/logo.png"
+              src="https://storage.googleapis.com/se-ferre-bucket/brand/LogoSuperFerre.webp"
               alt="Logo de Super Ferre"
               className="h-12 w-auto object-contain sm:h-14"
             />
