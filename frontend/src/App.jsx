@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./assets/components/navbar.jsx";
 import Footer from "./assets/components/footer.jsx";
 import Login from "./pages/login.jsx";
+import Registro from "./pages/registro.jsx";
 import Home from "./pages/home.jsx";
 import "./index.css";
 
@@ -15,6 +16,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
           </Routes>
         </main>
 
