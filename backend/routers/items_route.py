@@ -5,22 +5,25 @@ from jose import jwt, JWTError
 
 from database.db_mysql import get_db
 from models.items_modelo import (
-    CreacionCategoria,
     CategoriaRespuesta,
+    SubcategoriaRespuesta,
+    TagRespuesta,
     CreacionProducto,
     ActualizacionProducto,
     ProductoRespuesta,
 )
 from services.items_servicios import (
     obtener_categorias,
-    obtener_categoria_por_id,
-    obtener_categoria_por_nombre,
-    crear_categoria,
+    obtener_subcategorias,
+    obtener_subcategoria_por_id,
+    obtener_tags,
+    obtener_tags_por_ids,
     obtener_productos,
     obtener_producto_por_id,
     crear_producto,
     actualizar_producto,
-    desactivar_producto,
+    producto_tiene_pedidos,
+    eliminar_producto,
 )
 from config import SECRET_KEY, ALGORITHM
 
@@ -48,10 +51,21 @@ def requiere_admin(request: Request):
 
     return payload
 
+def validar_subcategoria(db: Session, id_subcategoria: int):
+    if not obtener_subcategoria_por_id(db, id_subcategoria):
+        raise HTTPException(status_code=400, detail="La subcategoría no existe")
+
+def validar_tags(db: Session, ids_tags: list[int]):
+    ids_unicos = set(ids_tags)
+    tags = obtener_tags_por_ids(db, list(ids_unicos))
+    if len(tags) != len(ids_unicos):
+        raise HTTPException(status_code=400, detail="Uno o más tags no existen")
+    return tags
+
 @router.get("/categorias", response_model=list[CategoriaRespuesta])
 def listar_categorias(db: Session = Depends(get_db)):
     """
-    Lista de categorías
+    Lista de categorías con sus subcategorías
 
     **Valores necesarios:**
 
@@ -59,33 +73,10 @@ def listar_categorias(db: Session = Depends(get_db)):
     """
     return obtener_categorias(db)
 
-@router.post("/categorias", response_model=CategoriaRespuesta)
-def registrar_categoria(
-    categoria: CreacionCategoria,
-    db: Session = Depends(get_db),
-    admin: dict = Depends(requiere_admin),
-):
+@router.get("/subcategorias", response_model=list[SubcategoriaRespuesta])
+def listar_subcategorias(id_categoria: int | None = None, db: Session = Depends(get_db)):
     """
-    Creación de categoría **(Solo administrador)**
-
-    **Valores necesarios:**
-
-    -- ```nombre_categoria```
-    """
-    if obtener_categoria_por_nombre(db, categoria.nombre_categoria):
-        raise HTTPException(status_code=400, detail="La categoría ya existe")
-    return crear_categoria(db=db, categoria=categoria)
-
-@router.get("/productos", response_model=list[ProductoRespuesta])
-def listar_productos(
-    id_categoria: int | None = None,
-    buscar: str | None = None,
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
-    db: Session = Depends(get_db),
-):
-    """
-    Lista de productos activos
+    Lista de subcategorías
 
     **Valores necesarios:**
 
@@ -94,6 +85,44 @@ def listar_productos(
     **Valores opcionales (query):**
 
     -- ```id_categoria```
+    """
+    return obtener_subcategorias(db, id_categoria=id_categoria)
+
+@router.get("/tags", response_model=list[TagRespuesta])
+def listar_tags(db: Session = Depends(get_db)):
+    """
+    Lista de tags
+
+    **Valores necesarios:**
+
+    - **Ninguno**
+    """
+    return obtener_tags(db)
+
+@router.get("/productos", response_model=list[ProductoRespuesta])
+def listar_productos(
+    id_categoria: int | None = None,
+    id_subcategoria: int | None = None,
+    id_tag: int | None = None,
+    buscar: str | None = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    """
+    Lista de productos
+
+    **Valores necesarios:**
+
+    - **Ninguno**
+
+    **Valores opcionales (query):**
+
+    -- ```id_categoria```
+
+    -- ```id_subcategoria```
+
+    -- ```id_tag```
 
     -- ```buscar``` **(Busca por nombre del producto)**
 
@@ -104,6 +133,8 @@ def listar_productos(
     return obtener_productos(
         db,
         id_categoria=id_categoria,
+        id_subcategoria=id_subcategoria,
+        id_tag=id_tag,
         buscar=buscar,
         skip=skip,
         limit=limit,
@@ -134,6 +165,8 @@ def registrar_producto(
 
     **Valores necesarios:**
 
+    -- ```id_subcategoria```
+
     -- ```nombre_producto```
 
     -- ```precio_producto``` **(Mayor a ```0```)**
@@ -142,15 +175,15 @@ def registrar_producto(
 
     -- ```descripcion_producto```
 
-    -- ```stock_producto``` **(Mayor o igual a ```0```, por defecto ```0```)**
-
     -- ```imagen_producto```
 
-    -- ```id_categoria```
+    -- ```cantidad_producto``` **(Mayor o igual a ```0```, por defecto ```0```)**
+
+    -- ```tags``` **(Lista de ids de tags)**
     """
-    if producto.id_categoria is not None and not obtener_categoria_por_id(db, producto.id_categoria):
-        raise HTTPException(status_code=400, detail="La categoría no existe")
-    return crear_producto(db=db, producto=producto)
+    validar_subcategoria(db, producto.id_subcategoria)
+    tags = validar_tags(db, producto.tags)
+    return crear_producto(db=db, producto=producto, tags=tags)
 
 @router.patch("/productos/{id_producto}", response_model=ProductoRespuesta)
 def editar_producto(
@@ -168,42 +201,45 @@ def editar_producto(
 
     **Valores opcionales (solo se actualizan los que se envíen):**
 
+    -- ```id_subcategoria```
+
     -- ```nombre_producto```
 
     -- ```descripcion_producto```
 
-    -- ```precio_producto```
-
-    -- ```stock_producto```
-
     -- ```imagen_producto```
 
-    -- ```id_categoria```
+    -- ```cantidad_producto```
 
-    -- ```activo``` **(```true``` para reactivar un producto)**
+    -- ```precio_producto```
+
+    -- ```tags``` **(Reemplaza la lista completa, ```[]``` los quita todos)**
     """
-    db_producto = obtener_producto_por_id(db, id_producto, incluir_inactivos=True)
+    db_producto = obtener_producto_por_id(db, id_producto)
     if not db_producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
 
     datos = producto.model_dump(exclude_unset=True)
-    for campo in ("nombre_producto", "precio_producto", "stock_producto", "activo"):
+    for campo in ("id_subcategoria", "nombre_producto", "cantidad_producto", "precio_producto"):
         if campo in datos and datos[campo] is None:
             raise HTTPException(status_code=400, detail=f"El campo {campo} no puede ser nulo")
 
-    if datos.get("id_categoria") is not None and not obtener_categoria_por_id(db, datos["id_categoria"]):
-        raise HTTPException(status_code=400, detail="La categoría no existe")
+    if "id_subcategoria" in datos:
+        validar_subcategoria(db, datos["id_subcategoria"])
+    tags = validar_tags(db, producto.tags) if producto.tags is not None else None
 
-    return actualizar_producto(db=db, db_producto=db_producto, producto=producto)
+    return actualizar_producto(db=db, db_producto=db_producto, producto=producto, tags=tags)
 
 @router.delete("/productos/{id_producto}")
-def eliminar_producto(
+def borrar_producto(
     id_producto: int,
     db: Session = Depends(get_db),
     admin: dict = Depends(requiere_admin),
 ):
     """
-    Desactivación de producto **(Solo administrador)**
+    Eliminación de producto **(Solo administrador)**
+
+    No se puede eliminar un producto que ya tiene pedidos.
 
     **Valores necesarios:**
 
@@ -212,5 +248,7 @@ def eliminar_producto(
     db_producto = obtener_producto_por_id(db, id_producto)
     if not db_producto:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
-    desactivar_producto(db=db, db_producto=db_producto)
-    return {"message": "Producto desactivado exitosamente"}
+    if producto_tiene_pedidos(db, id_producto):
+        raise HTTPException(status_code=409, detail="El producto tiene pedidos y no se puede eliminar")
+    eliminar_producto(db=db, db_producto=db_producto)
+    return {"message": "Producto eliminado exitosamente"}
