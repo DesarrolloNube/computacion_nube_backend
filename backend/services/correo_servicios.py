@@ -7,7 +7,8 @@ from config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM
 #Envía un correo HTML. Si no hay SMTP configurado (desarrollo local), lo imprime en consola
 def enviar_correo(destinatario: str, asunto: str, cuerpo_html: str):
     if not SMTP_USER or not SMTP_PASSWORD:
-        print(f"[correo] SMTP no configurado. Para: {destinatario} | Asunto: {asunto}\n{cuerpo_html}")
+        #flush=True: dentro de Docker la salida queda en buffer y no aparece en los logs
+        print(f"[correo] SMTP no configurado. Para: {destinatario} | Asunto: {asunto}\n{cuerpo_html}", flush=True)
         return
 
     mensaje = EmailMessage()
@@ -24,7 +25,7 @@ def enviar_correo(destinatario: str, asunto: str, cuerpo_html: str):
             servidor.send_message(mensaje)
     except Exception as error:
         #Se corre en segundo plano: no se puede devolver error al cliente, solo se registra
-        print(f"[correo] Error enviando correo a {destinatario}: {error}")
+        print(f"[correo] Error enviando correo a {destinatario}: {error}", flush=True)
 
 
 def plantilla_recuperacion(link: str, nombre: str, minutos: int) -> str:
