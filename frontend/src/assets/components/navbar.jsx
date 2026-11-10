@@ -16,6 +16,14 @@ const categories = [
     name: "Artículos del hogar",
     href: "/productos?categoria=articulos_del_hogar",
   },
+    {
+    name: "Fontaneria",
+    href: "/productos?categoria=fontaneria",
+  },
+  {
+    name: "Jardineria y exteriores",
+    href: "/productos?categoria=jardineria_y_exteriores",
+  },
 ];
 
 export default function Navbar() {
