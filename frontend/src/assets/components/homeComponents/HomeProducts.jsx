@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../../services/api";
 import ProductoCard from "../../components/productoCard";
+import { Link } from "react-router-dom";
 function HomeProducts() {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -53,56 +54,68 @@ function HomeProducts() {
           No hay productos disponibles.
         </p>
       ) : (
-        <div className="relative">
-          <div
-            id="productos-carousel"
-            className="carousel carousel-center w-full gap-4 p-2"
-          >
-            {productos.map((producto) => (
-              <div
-                key={producto.id}
-                className="carousel-item w-64 sm:w-72"
-              >
-                <ProductoCard producto={producto} />
-              </div>
-            ))}
-          </div>
+<div className="relative">
+  <div
+    id="productos-carousel"
+    className="carousel carousel-center w-full gap-4 p-2"
+  >
+    {productos.map((producto) => (
+      <div
+        key={producto.id}
+        className="carousel-item w-64 sm:w-72"
+      >
+        <ProductoCard producto={producto} />
+      </div>
+    ))}
+  </div>
 
-          <div className="mt-4 flex justify-end gap-2">
-            <button
-              type="button"
-              className="btn btn-circle"
-              aria-label="Productos anteriores"
-              onClick={() =>
-                document
-                  .getElementById("productos-carousel")
-                  ?.scrollBy({
-                    left: -300,
-                    behavior: "smooth",
-                  })
-              }
-            >
-              ❮
-            </button>
+  {/* Flechas de navegación */}
+  <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
+    <button
+      type="button"
+      className="btn btn-circle pointer-events-auto shadow-md"
+      aria-label="Productos anteriores"
+      onClick={() =>
+        document
+          .getElementById("productos-carousel")
+          ?.scrollBy({
+            left: -300,
+            behavior: "smooth",
+          })
+      }
+    >
+      ❮
+    </button>
 
-            <button
-              type="button"
-              className="btn btn-circle"
-              aria-label="Productos siguientes"
-              onClick={() =>
-                document
-                  .getElementById("productos-carousel")
-                  ?.scrollBy({
-                    left: 300,
-                    behavior: "smooth",
-                  })
-              }
-            >
-              ❯
-            </button>
-          </div>
-        </div>
+    <button
+      type="button"
+      className="btn btn-circle pointer-events-auto shadow-md"
+      aria-label="Productos siguientes"
+      onClick={() =>
+        document
+          .getElementById("productos-carousel")
+          ?.scrollBy({
+            left: 300,
+            behavior: "smooth",
+          })
+      }
+    >
+      ❯
+    </button>
+  </div>
+</div>
+
       )}
+
+<div className="mt-8 flex justify-center">
+  <Link
+    to="/productos"
+    className="btn border-none bg-[#efb60e] px-8 text-gray-900 hover:bg-[#d9a40b]"
+  >
+    Ver todos los productos
+  </Link>
+</div>
+
     </section>
   );
 }
