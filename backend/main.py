@@ -3,8 +3,12 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from os import getenv
-from routers import usuarios_route
-from routers import items_route
+from routers import (
+    usuarios_route,
+    items_route,
+    carrito_route,
+    pedidos_route,
+)
 
 load_dotenv()
 app = FastAPI()
@@ -28,3 +32,5 @@ def read_root():
 
 app.include_router(usuarios_route.router, prefix="/api")
 app.include_router(items_route.router, prefix="/api")
+app.include_router(carrito_route.router, prefix="/api")
+app.include_router(pedidos_route.router, prefix="/api")

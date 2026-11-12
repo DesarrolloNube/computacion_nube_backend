@@ -10,6 +10,7 @@ from services.usuarios_servicios import (
     iniciar_sesion_usuario as autenticar_usuario,
     crear_tokens_usuario,
     cerrar_sesion,
+    refrescar_tokens,
     solicitar_recuperacion,
     restablecer_contrasena,
 )
@@ -22,6 +23,28 @@ from jose import jwt, JWTError
 from config import SECRET_KEY, ALGORITHM
 
 router = APIRouter(prefix="/usuarios")
+
+
+
+def poner_cookies(response: Response, access_token: str, refresh_token: str):
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,  # True en producción (HTTPS)
+        samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,  # True en producción (HTTPS)
+        samesite="lax",
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        path="/",
+    )
 
 @router.post("/registrar", response_model=UsuarioRespuesta)
 def registrar_usuario(usuario: CreacionUsuario, db: Session = Depends(get_db)):
@@ -79,25 +102,7 @@ def login( credentials: LoginRequest, response: Response, db: Session = Depends(
         db, usuario_db
     )
 
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=False,  # Local HTTP development only
-        samesite="lax",
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
-
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=False,  # Set True in HTTPS production
-        samesite="lax",
-        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-    )
+    poner_cookies(response, access_token, refresh_token)
 
     return {"message": "Inicio de sesión exitoso"}
 
@@ -116,13 +121,12 @@ def quien_es(request: Request):
         raise HTTPException(status_code=401, detail="No hay cookie token de acceso")
 
     try:
-        payload = jwt.decode(
-            access_token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM],
-        )
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
-        raise HTTPException(status_code=401, detail="Token inválido expirado")
+        raise HTTPException(status_code=401, detail="Token inválido o expirado")
+
+    if payload.get("sub") is None:
+        raise HTTPException(status_code=401, detail="Token inválido")
 
     return {
         "user_id": payload.get("sub"),
@@ -180,3 +184,17 @@ def restablecer(datos: RestablecerContrasena, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="El enlace es inválido o ya venció. Solicita uno nuevo.")
 
     return {"message": "Contraseña restablecida exitosamente"}
+
+@router.post("/refresh")
+def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
+    """
+    Renueva los tokens usando la cookie refresh_token
+
+    **Valores necesarios:**
+
+    - **Ninguno**
+    """
+    refresh_token = request.cookies.get("refresh_token")
+    access_token, nuevo_refresh = refrescar_tokens(db, refresh_token)
+    poner_cookies(response, access_token, nuevo_refresh)
+    return {"message": "Tokens renovados"}

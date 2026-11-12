@@ -142,13 +142,47 @@ def restablecer_contrasena(db: Session, token: str, nueva_contrasena: str) -> bo
     db.commit()
     return True
 
+def refrescar_tokens(db: Session, refresh_token: str | None):
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="No hay refresh token")
+
+    db_token = (
+        db.query(RefrescarToken)
+        .filter(RefrescarToken.token == hash_refresh_token(refresh_token))
+        .first()
+    )
+
+    if not db_token:
+        raise HTTPException(status_code=401, detail="Refresh token inválido")
+
+    # MySQL suele devolver datetimes sin zona horaria, así que
+    # se comparan ambos sin tzinfo (los dos están en UTC)
+    if db_token.expires_at.replace(tzinfo=None) < utc_now().replace(tzinfo=None):
+        db.delete(db_token)
+        db.commit()
+        raise HTTPException(status_code=401, detail="Refresh token expirado")
+
+    usuario = db.query(Usuario).filter(Usuario.id == db_token.user_id).first()
+
+    if not usuario:
+        db.delete(db_token)
+        db.commit()
+        raise HTTPException(status_code=401, detail="Usuario no existe")
+
+    # Esto borra el token viejo y crea un par nuevo (rotación)
+    return crear_tokens_usuario(db, usuario)
+
 def cerrar_sesion(db: Session, refresh_token: str | None):
+    # Sin cookie no hay nada que revocar
     if not refresh_token:
         return
-    #En la BD se guarda el hash del refresh token, no el token en sí
-    db_token = db.query(RefrescarToken).filter(
-        RefrescarToken.token == hash_refresh_token(refresh_token)
-    ).first()
+
+    db_token = (
+        db.query(RefrescarToken)
+        .filter(RefrescarToken.token == hash_refresh_token(refresh_token))
+        .first()
+    )
+
     if db_token:
         db.delete(db_token)
         db.commit()
