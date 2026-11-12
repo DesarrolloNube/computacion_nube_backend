@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 
 const categories = [
+  { name: "Todos los productos", href: "/productos" },
   { name: "Herramientas", href: "/productos?categoria=herramientas" },
   { name: "Construcción", href: "/productos?categoria=construccion" },
   { name: "Pinturas", href: "/productos?categoria=pinturas" },
@@ -34,13 +35,16 @@ export default function Navbar() {
   const { user, isAuthenticated, loadingAuth, logout } = useAuth();
   const navigate = useNavigate();
 
-  function handleSearch(event) {
-    event.preventDefault();
+const handleSearch = (e) => {
+  e.preventDefault();
 
-    if (!search.trim()) return;
+  const palabra = search.trim();
 
-    navigate(`/productos?busqueda=${encodeURIComponent(search.trim())}`);
-  }
+  if (!palabra) return;
+
+  navigate(`/productos?buscar=${encodeURIComponent(palabra)}`);
+  setSearch("");
+};
 
   async function handleLogout() {
     try {

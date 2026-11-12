@@ -4,6 +4,8 @@ import Footer from "./assets/components/footer.jsx";
 import Login from "./pages/login.jsx";
 import Registro from "./pages/registro.jsx";
 import Home from "./pages/home.jsx";
+import Productos from "./pages/productos.jsx";
+
 import "./index.css";
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/productos" element={<Productos />} />
+
           </Routes>
         </main>
 
