@@ -5,6 +5,7 @@ import Login from "./pages/login.jsx";
 import Registro from "./pages/registro.jsx";
 import Home from "./pages/home.jsx";
 import Productos from "./pages/productos.jsx";
+import Carrito from "./pages/carrito.jsx";
 
 import "./index.css";
 
@@ -20,6 +21,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
             <Route path="/productos" element={<Productos />} />
+            <Route path="/carrito" element={<Carrito />} />
 
           </Routes>
         </main>
