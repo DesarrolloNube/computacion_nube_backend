@@ -94,7 +94,6 @@ export default function Registro() {
       usuario: form.usuario.trim(),
       correo: form.correo.trim(),
       contrasena: form.contrasena,
-      id_tipo_usuario: 2,
     };
 
     if (
@@ -106,6 +105,11 @@ export default function Registro() {
       !form.confirmarContrasena.trim()
     ) {
       setError("Todos los campos son obligatorios.");
+      return;
+    }
+
+    if (form.contrasena.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
@@ -241,7 +245,7 @@ export default function Registro() {
                   id="contrasena"
                   type={showPassword ? "text" : "password"}
                   name="contrasena"
-                  placeholder="Tu contraseña"
+                  placeholder="Mínimo 8 caracteres"
                   autoComplete="new-password"
                   value={form.contrasena}
                   onChange={handleChange}

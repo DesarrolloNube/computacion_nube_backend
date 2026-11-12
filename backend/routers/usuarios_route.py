@@ -1,16 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from database.db_mysql import get_db
-from models.usuarios_modelo import ( CreacionUsuario, LoginRequest )
+from models.usuarios_modelo import ( CreacionUsuario, UsuarioRespuesta, LoginRequest, SolicitudRecuperacion, RestablecerContrasena )
 from services.usuarios_servicios import (
     obtener_usuario_por_nombre,
+    obtener_usuario_por_correo,
     crear_usuario,
     iniciar_sesion_usuario as autenticar_usuario,
     crear_tokens_usuario,
     cerrar_sesion,
-    refrescar_tokens
+    refrescar_tokens,
+    solicitar_recuperacion,
+    restablecer_contrasena,
 )
+from services.correo_servicios import enviar_correo
 from config import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_DAYS,
@@ -42,10 +46,10 @@ def poner_cookies(response: Response, access_token: str, refresh_token: str):
         path="/",
     )
 
-@router.post("/registrar")
+@router.post("/registrar", response_model=UsuarioRespuesta)
 def registrar_usuario(usuario: CreacionUsuario, db: Session = Depends(get_db)):
     """
-    Creación de usuario
+    Creación de usuario (siempre se crea como cliente, ```id_tipo_usuario = 2```)
 
     **Valores necesarios:**
 
@@ -55,15 +59,12 @@ def registrar_usuario(usuario: CreacionUsuario, db: Session = Depends(get_db)):
 
     -- ```usuario```
 
-    -- ```correo```
+    -- ```correo``` **(correo válido)**
 
-    -- ```contrasena```
-
-    -- ```id_tipo_usario``` **(Solo puede ser ```1``` o ```2```)**
+    -- ```contrasena``` **(mínimo 8 caracteres)**
     """
-    db_usuario= obtener_usuario_por_nombre(db, username=usuario.usuario)
-    #Si el usuario existe
-    if (db_usuario):
+    #Si el usuario o el correo ya existen
+    if obtener_usuario_por_nombre(db, username=usuario.usuario) or obtener_usuario_por_correo(db, usuario.correo):
         raise HTTPException(status_code=400, detail="Usuario o correo ya existe")
     return crear_usuario(db=db, usuario=usuario)
 
@@ -150,6 +151,39 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
     response.delete_cookie(key="refresh_token", path="/")
 
     return { "message": "Sesión cerrada exitosamente"}
+
+@router.post("/recuperar-contrasena")
+def recuperar_contrasena(datos: SolicitudRecuperacion, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """
+    Solicitud de recuperación de contraseña. Envía un link al correo si existe una cuenta asociada
+
+    **Valores necesarios:**
+
+    -- ```correo```
+
+    La respuesta es siempre la misma para no revelar qué correos están registrados
+    """
+    envio = solicitar_recuperacion(db, datos.correo.strip().lower())
+    if envio:
+        background_tasks.add_task(enviar_correo, *envio)
+
+    return {"message": "Si existe una cuenta asociada a este correo, recibirás un enlace para restablecer tu contraseña."}
+
+@router.post("/restablecer-contrasena")
+def restablecer(datos: RestablecerContrasena, db: Session = Depends(get_db)):
+    """
+    Restablece la contraseña usando el token recibido por correo
+
+    **Valores necesarios:**
+
+    -- ```token```
+
+    -- ```nueva_contrasena``` **(mínimo 8 caracteres)**
+    """
+    if not restablecer_contrasena(db, datos.token, datos.nueva_contrasena):
+        raise HTTPException(status_code=400, detail="El enlace es inválido o ya venció. Solicita uno nuevo.")
+
+    return {"message": "Contraseña restablecida exitosamente"}
 
 @router.post("/refresh")
 def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
