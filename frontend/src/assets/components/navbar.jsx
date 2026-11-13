@@ -32,7 +32,13 @@ export default function Navbar() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { user, isAuthenticated, loadingAuth, logout } = useAuth();
+const {
+  user,
+  isAuthenticated,
+  loadingAuth,
+  logout,
+  cartCount,
+} = useAuth();
   const navigate = useNavigate();
 
 const handleSearch = (e) => {
@@ -95,14 +101,20 @@ const handleSearch = (e) => {
         </div>
 
         <div className="navbar-end flex-1 gap-1">
-          <Link
-            to="/carrito"
-            className="btn btn-ghost btn-square text-white hover:bg-white/10"
-            aria-label="Carrito de compras"
-            title="Carrito"
-          >
-            <ShoppingCart size={24} strokeWidth={1.8} />
-          </Link>
+<Link
+  to="/carrito"
+  className="btn btn-ghost btn-square relative text-white hover:bg-white/10"
+  aria-label={`Carrito de compras: ${cartCount} unidades`}
+  title="Carrito"
+>
+  <ShoppingCart size={24} strokeWidth={1.8} />
+
+  {cartCount > 0 && (
+    <span className="absolute right-0 top-0 flex h-5 min-w-5 -translate-y-1/4 translate-x-1/4 items-center justify-center rounded-full bg-[#efb60e] px-1 text-xs font-bold text-black">
+      {cartCount > 99 ? "99+" : cartCount}
+    </span>
+  )}
+</Link>
 
           <div className="dropdown dropdown-end">
             <button

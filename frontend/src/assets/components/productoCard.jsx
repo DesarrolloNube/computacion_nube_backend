@@ -6,7 +6,7 @@ import { agregarItem } from "../../services/carritoServices";
 
 function ProductCard({ producto }) {
   const navigate = useNavigate();
-  const { isAuthenticated, loadingAuth } = useAuth();
+const { isAuthenticated, loadingAuth, refreshCart } = useAuth();
   const [agregando, setAgregando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
@@ -23,8 +23,9 @@ function ProductCard({ producto }) {
     setMensaje("");
     setError("");
     try {
-      await agregarItem(producto.id, 1);
-      setMensaje("Producto agregado al carrito.");
+     await agregarItem(producto.id, 1);
+await refreshCart();
+setMensaje("Producto agregado al carrito.");
     } catch (err) {
       const status = err.response?.status;
       if (status === 401) {

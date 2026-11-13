@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import {
@@ -38,6 +38,7 @@ function mensajeError(error) {
 }
 
 function ContenidoCarrito() {
+  const { actualizarContadorCarrito } = useAuth();
   const navigate = useNavigate();
   const [carrito, setCarrito] = useState(null);
   const [cantidades, setCantidades] = useState({});
@@ -51,12 +52,25 @@ function ContenidoCarrito() {
   const bloqueo = useRef(false);
   const activo = useRef(false);
 
-  function aplicarCarrito(datos) {
-    setCarrito(datos);
-    setCantidades(Object.fromEntries(
-      datos.items.map((item) => [item.id_producto, String(item.cantidad)])
-    ));
-  }
+const aplicarCarrito = useCallback((datos) => {
+  const items = datos.items ?? [];
+
+  setCarrito({
+    ...datos,
+    items,
+  });
+
+  setCantidades(
+    Object.fromEntries(
+      items.map((item) => [
+        item.id_producto,
+        String(item.cantidad),
+      ])
+    )
+  );
+
+  actualizarContadorCarrito(items);
+}, [actualizarContadorCarrito]);
 
   useEffect(() => {
     activo.current = true;
@@ -83,7 +97,7 @@ function ContenidoCarrito() {
       activo.current = false;
       controller.abort();
     };
-  }, [navigate]);
+  }, [navigate, aplicarCarrito]);
 
   async function ejecutar(accion, esCompra = false) {
     if (bloqueo.current) return;
@@ -95,9 +109,9 @@ function ContenidoCarrito() {
       if (esCompra) {
         const resultado = await completarCompra();
         if (!activo.current) return;
-        setPedido(resultado);
-        aplicarCarrito({ items: [], total: 0 });
-        setRequiereActualizar(false);
+setPedido(resultado);
+aplicarCarrito({ items: [], total: 0 });
+setRequiereActualizar(false);
       } else {
         await accion();
         if (!activo.current) return;

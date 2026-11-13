@@ -41,18 +41,6 @@ try {
 }
   }
 
-
-
-
-
-
-
-
-
-
-
-  
-
   return (
     <main className="flex min-h-[70vh] items-center justify-center bg-white px-4 py-12 text-black">
       <div className="card w-full max-w-md border border-gray-200 bg-white shadow-xl">

@@ -69,7 +69,6 @@ function HomeProducts() {
     ))}
   </div>
 
-  {/* Flechas de navegación */}
   <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-2">
     <button
       type="button"
